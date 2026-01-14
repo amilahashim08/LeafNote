@@ -5,6 +5,10 @@ export interface INote extends Document {
   content: string;
   tags: string[];
   isPinned: boolean;
+  // review metadata
+  reviewed?: boolean;
+  reviewedBy?: mongoose.Types.ObjectId | null;
+  reviewedAt?: Date | null;
   userId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -30,6 +34,20 @@ const noteSchema = new Schema<INote>(
     isPinned: {
       type: Boolean,
       default: false,
+    },
+    // review metadata for admin
+    reviewed: {
+      type: Boolean,
+      default: false,
+    },
+    reviewedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
     },
     userId: {
       type: Schema.Types.ObjectId,

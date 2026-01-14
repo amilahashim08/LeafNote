@@ -1,10 +1,11 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+import { formatDistanceToNow, isWithinInterval, subDays, format } from 'date-fns';
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -14,6 +15,20 @@ export function formatDate(date: Date | string): string {
   const time = format(d, 'h:mm a'); // 10:54 PM
   
   return `${day} ${monthYear}, ${time}`;
+}
+
+export function formatRelativeDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  // If within last 7 days, show relative
+  const now = new Date();
+  const sevenDaysAgo = subDays(now, 7);
+
+  const within7Days = isWithinInterval(d, { start: sevenDaysAgo, end: now });
+  if (within7Days) {
+    return formatDistanceToNow(d, { addSuffix: true });
+  }
+
+  return formatDate(d);
 }
 
 

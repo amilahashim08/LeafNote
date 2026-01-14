@@ -182,6 +182,24 @@ npm run lint
 
 - Ensure MongoDB is running (if using local MongoDB)
 - Check your `MONGODB_URI` in `.env.local`
+
+## Admin Portal
+
+1. Create an admin user (one-time):
+
+   - Use env vars or defaults and run:
+     ```bash
+     npm run seed:admin
+     ```
+   - Defaults: ADMIN_EMAIL=admin@local.test, ADMIN_PASSWORD=Admin123!, ADMIN_NAME=Admin
+
+2. Start the app and log in as the admin account. Visit `/admin` to see the Admin Portal where you can view users, their daily notes, and mark notes as reviewed.
+
+3. API endpoints (protected, admin only):
+   - GET /api/admin/users — list users with today's note counts
+   - GET /api/admin/users/:id/notes — list notes for a user
+   - PUT /api/admin/notes/:id/review — mark note as reviewed
+
 - For MongoDB Atlas, verify your IP is whitelisted and credentials are correct
 
 ### Authentication Issues

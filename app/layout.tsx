@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LeafNote - Your Note Taking App',
+  title: 'DailyNote - Your Note Taking App',
   description: 'A modern note-taking application with CRUD operations',
 };
 

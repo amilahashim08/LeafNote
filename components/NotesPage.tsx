@@ -102,6 +102,7 @@ export default function NotesPage() {
       const data = await response.json();
 
       if (data.success) {
+        console.log('Fetched notes:', data.data);
         setNotes(data.data || []);
         setFilteredNotes(data.data || []);
       }

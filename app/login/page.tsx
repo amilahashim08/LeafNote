@@ -60,7 +60,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            <span className="text-primary">Leaf</span>
+            <span className="text-primary">Dailly</span>
             <span className="text-orange-500">Note</span>
           </h1>
           <p className="text-gray-600">

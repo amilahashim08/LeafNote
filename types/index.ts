@@ -13,6 +13,10 @@ export interface Note {
   content: string;
   tags: string[];
   isPinned: boolean;
+  // review metadata (optional in frontend)
+  reviewed?: boolean;
+  reviewedBy?: string | null;
+  reviewedAt?: Date | string | null;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

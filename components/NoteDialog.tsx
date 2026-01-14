@@ -40,13 +40,24 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      await onSave(formData);
+      // If there's a tag typed but not added, add it automatically
+      const pending = tagInput.trim();
+      const finalData = { ...formData } as NoteFormData;
+      if (pending && !finalData.tags.includes(pending)) {
+        finalData.tags = [...finalData.tags, pending];
+      }
+
+      console.log('Submitting note:', finalData);
+
+      await onSave(finalData);
       onClose();
       setFormData({ title: '', content: '', tags: [] });
       setTagInput('');
     } catch (error) {
       console.error('Error saving note:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

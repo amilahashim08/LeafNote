@@ -36,7 +36,7 @@ export default function TopNav({ onSearch, userName, userInitials }: TopNavProps
           {/* Logo */}
           <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold">
-              <span className="text-primary">Leaf</span>
+              <span className="text-primary">Daily</span>
               <span className="text-orange-500">Note</span>
             </h1>
           </div>
