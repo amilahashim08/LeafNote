@@ -1119,6 +1119,11 @@ concat-map@0.0.1:
   resolved "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz"
   integrity sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==
 
+countries-and-timezones@^3.9.0:
+  version "3.9.0"
+  resolved "https://registry.npmjs.org/countries-and-timezones/-/countries-and-timezones-3.9.0.tgz"
+  integrity sha512-3upkVtUfZgdp5xOQI/Deg1ye73ae6bygJMO4UvtUi6wLjwcj7cBqx2PzSZ1VL8i5iveBbjhsQp2Judx7kPKivA==
+
 create-require@^1.1.0:
   version "1.1.1"
   resolved "https://registry.npmjs.org/create-require/-/create-require-1.1.1.tgz"

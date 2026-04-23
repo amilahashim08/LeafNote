@@ -5,10 +5,24 @@ import { getUserIdFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const optionalTrimmedString = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    return trimmed === '' ? undefined : trimmed;
+  },
+  z.string().optional()
+);
+
 const noteSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
   tags: z.array(z.string()).default([]),
+  clientRegion: optionalTrimmedString,
+  clientTimeZone: optionalTrimmedString,
 });
 
 // GET - Fetch all notes for the authenticated user

@@ -13,6 +13,8 @@ export interface Note {
   content: string;
   tags: string[];
   isPinned: boolean;
+  clientRegion?: string;
+  clientTimeZone?: string;
   // review metadata (optional in frontend)
   reviewed?: boolean;
   reviewedBy?: string | null;
@@ -26,6 +28,8 @@ export interface NoteFormData {
   title: string;
   content: string;
   tags: string[];
+  clientRegion?: string;
+  clientTimeZone?: string;
 }
 
 export interface ApiResponse<T = any> {

@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Note } from '@/types';
 import { FiEdit2, FiTrash2, FiCalendar } from 'react-icons/fi';
 import { MdPushPin } from 'react-icons/md';
-import { formatDate, formatRelativeDate } from '@/lib/utils';
+import { formatCurrentTimeForTimeZone, formatRelativeDate } from '@/lib/utils';
 
 interface NoteCardProps {
   note: Note;
@@ -13,6 +14,24 @@ interface NoteCardProps {
 }
 
 export default function NoteCard({ note, onEdit, onDelete, onTogglePin }: NoteCardProps) {
+  const [regionTime, setRegionTime] = useState('');
+
+  useEffect(() => {
+    if (!note.clientTimeZone) {
+      setRegionTime('');
+      return;
+    }
+
+    const updateTime = () => {
+      setRegionTime(formatCurrentTimeForTimeZone(note.clientTimeZone || ''));
+    };
+
+    updateTime();
+    const timer = window.setInterval(updateTime, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [note.clientTimeZone]);
+
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this note?')) {
       await onDelete(note._id);
@@ -47,6 +66,17 @@ export default function NoteCard({ note, onEdit, onDelete, onTogglePin }: NoteCa
         <div className="flex items-center text-xs text-gray-400">
           <FiCalendar className="mr-2 h-3.5 w-3.5 text-gray-400" />
           <span>{formatRelativeDate(note.createdAt)}</span>
+        </div>
+        <div className="mt-1 space-y-0.5 text-xs">
+          <div className="text-gray-500">
+            <span className="font-medium">Region:</span> {note.clientRegion || 'Not set'}
+          </div>
+          <div className="text-gray-500">
+            <span className="font-medium">Time zone:</span> {note.clientTimeZone || 'Not set'}
+          </div>
+          <div className="text-green-700 font-medium">
+            Current time: {note.clientTimeZone ? (regionTime || 'Loading...') : 'Set time zone to view'}
+          </div>
         </div>
       </div>
 

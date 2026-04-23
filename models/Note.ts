@@ -5,6 +5,8 @@ export interface INote extends Document {
   content: string;
   tags: string[];
   isPinned: boolean;
+  clientRegion?: string;
+  clientTimeZone?: string;
   // review metadata
   reviewed?: boolean;
   reviewedBy?: mongoose.Types.ObjectId | null;
@@ -30,6 +32,16 @@ const noteSchema = new Schema<INote>(
       type: [String],
       default: [],
       trim: true,
+    },
+    clientRegion: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    clientTimeZone: {
+      type: String,
+      trim: true,
+      default: '',
     },
     isPinned: {
       type: Boolean,

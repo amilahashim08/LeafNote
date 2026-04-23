@@ -1,12 +1,6 @@
 import mongoose from 'mongoose';
 
-// Use a safe IPv4 local fallback and prefer setting MONGODB_URI in .env.local
-const DEFAULT_LOCAL_URI = 'mongodb://127.0.0.1:27017/leafnote';
-const MONGODB_URI = process.env.MONGODB_URI || DEFAULT_LOCAL_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
+const MONGODB_URI = process.env.MONGODB_URI;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -25,6 +19,12 @@ if (!global.mongoose) {
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
+  if (!MONGODB_URI) {
+    throw new Error(
+      'Missing MONGODB_URI environment variable. Set it in your deployment environment (e.g. Vercel Project Settings -> Environment Variables).'
+    );
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -40,11 +40,9 @@ async function dbConnect(): Promise<typeof mongoose> {
       return mongoose;
     }).catch((error) => {
       console.error('❌ MongoDB connection error:', error);
-      console.error('   Connection URI:', MONGODB_URI);
       console.error('💡 Please check:');
-      console.error('   1. Is MongoDB running (local Docker/service)?');
-      console.error('   2. Is your MONGODB_URI correct in .env.local?');
-      console.error('   3. For Atlas: Is your IP whitelisted and credentials correct?');
+      console.error('   1. Is your MONGODB_URI configured in the current environment?');
+      console.error('   2. For Atlas: Are credentials and network access configured?');
       console.error('   See MONGODB_SETUP.md for more details\n');
       cached.promise = null;
       throw error;

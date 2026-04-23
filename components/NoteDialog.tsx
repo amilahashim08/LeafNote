@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Note, NoteFormData } from '@/types';
+import { getAllCountries, getCountryForTimezone } from 'countries-and-timezones';
 
 interface NoteDialogProps {
   isOpen: boolean;
@@ -12,10 +13,21 @@ interface NoteDialogProps {
 }
 
 export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialogProps) {
+  const allTimeZones = Intl.supportedValuesOf('timeZone');
+  const allCountries = Object.values(getAllCountries());
+  const regionOptions = allCountries.map((country) => country.name).sort();
+  const normalizedRegionAliases: Record<string, string> = {
+    uk: 'United Kingdom',
+    uae: 'United Arab Emirates',
+    usa: 'United States',
+  };
+
   const [formData, setFormData] = useState<NoteFormData>({
     title: '',
     content: '',
     tags: [],
+    clientRegion: '',
+    clientTimeZone: '',
   });
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,12 +38,16 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
         title: note.title,
         content: note.content,
         tags: note.tags || [],
+        clientRegion: note.clientRegion || '',
+        clientTimeZone: note.clientTimeZone || '',
       });
     } else {
       setFormData({
         title: '',
         content: '',
         tags: [],
+        clientRegion: '',
+        clientTimeZone: '',
       });
     }
     setTagInput('');
@@ -53,7 +69,13 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
 
       await onSave(finalData);
       onClose();
-      setFormData({ title: '', content: '', tags: [] });
+      setFormData({
+        title: '',
+        content: '',
+        tags: [],
+        clientRegion: '',
+        clientTimeZone: '',
+      });
       setTagInput('');
     } catch (error) {
       console.error('Error saving note:', error);
@@ -86,6 +108,32 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
       e.preventDefault();
       handleAddTag();
     }
+  };
+
+  const handleRegionChange = (regionValue: string) => {
+    const normalizedInput = regionValue.trim().toLowerCase();
+    const normalizedRegion = normalizedRegionAliases[normalizedInput] || regionValue.trim();
+    const matchedCountry = allCountries.find(
+      (country) => country.name.toLowerCase() === normalizedRegion.toLowerCase()
+    );
+    const autoTimeZone = matchedCountry?.timezones?.[0] || '';
+
+    setFormData((prev) => ({
+      ...prev,
+      clientRegion: regionValue,
+      clientTimeZone: autoTimeZone || '',
+    }));
+  };
+
+  const handleTimeZoneChange = (timeZoneValue: string) => {
+    const matchedCountry = getCountryForTimezone(timeZoneValue);
+    const autoRegion = matchedCountry?.name || '';
+
+    setFormData((prev) => ({
+      ...prev,
+      clientTimeZone: timeZoneValue,
+      clientRegion: autoRegion || prev.clientRegion || '',
+    }));
   };
 
   if (!isOpen) return null;
@@ -177,6 +225,49 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Client Region and Timezone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
+                CLIENT REGION
+              </label>
+              <input
+                type="text"
+                value={formData.clientRegion || ''}
+                onChange={(e) => handleRegionChange(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
+                placeholder="e.g. United Kingdom"
+                list="region-options"
+              />
+              <datalist id="region-options">
+                {regionOptions.map((region) => (
+                  <option key={region} value={region} />
+                ))}
+              </datalist>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
+                TIME ZONE
+              </label>
+              <input
+                type="text"
+                value={formData.clientTimeZone || ''}
+                onChange={(e) => handleTimeZoneChange(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
+                placeholder="Search timezone (e.g. Europe/London)"
+                list="timezone-options"
+              />
+              <datalist id="timezone-options">
+                {allTimeZones.map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
+                ))}
+              </datalist>
+            </div>
           </div>
 
           {/* Submit Button */}

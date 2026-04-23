@@ -31,4 +31,21 @@ export function formatRelativeDate(date: Date | string): string {
   return formatDate(d);
 }
 
+export function formatCurrentTimeForTimeZone(
+  timeZone: string,
+  locale: string = 'en-GB'
+): string {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      timeZone,
+    }).format(new Date());
+  } catch {
+    return '';
+  }
+}
+
 
