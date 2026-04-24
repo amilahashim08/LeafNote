@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import TopNav from './TopNav';
 import NotesList from './NotesList';
 import NoteDialog from './NoteDialog';
+import TimeConverterModule from './TimeConverterModule';
 import { Note, NoteFormData } from '@/types';
+import { fetchJson } from '@/lib/fetchJson';
 import { FiPlus } from 'react-icons/fi';
 import { FiMenu } from 'react-icons/fi';
 
@@ -41,8 +43,7 @@ export default function NotesPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await fetch('/api/auth/me');
-      const data = await response.json();
+      const data = await fetchJson('/api/auth/me', { credentials: 'include' });
       
       if (data.success && data.data) {
         const user = data.data;
@@ -98,8 +99,7 @@ export default function NotesPage() {
   const fetchNotes = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/notes');
-      const data = await response.json();
+      const data = await fetchJson('/api/notes', { cache: 'no-store', credentials: 'include' });
 
       if (data.success) {
         console.log('Fetched notes:', data.data);
@@ -132,17 +132,25 @@ export default function NotesPage() {
       const url = editingNote ? `/api/notes/${editingNote._id}` : '/api/notes';
       const method = editingNote ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const data = await fetchJson(url, {
         method,
+        cache: 'no-store',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
       if (data.success) {
+        // Update local state immediately so edits are visible without waiting for refetch timing.
+        if (editingNote && data.data?._id) {
+          setNotes((prev) => prev.map((n) => (n._id === data.data._id ? data.data : n)));
+          setFilteredNotes((prev) => prev.map((n) => (n._id === data.data._id ? data.data : n)));
+        } else if (data.data?._id) {
+          setNotes((prev) => [data.data, ...prev]);
+          setFilteredNotes((prev) => [data.data, ...prev]);
+        }
         await fetchNotes();
       } else {
         throw new Error(data.error || 'Failed to save note');
@@ -155,11 +163,10 @@ export default function NotesPage() {
 
   const handleDeleteNote = async (noteId: string) => {
     try {
-      const response = await fetch(`/api/notes/${noteId}`, {
+      const data = await fetchJson(`/api/notes/${noteId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
-
-      const data = await response.json();
 
       if (data.success) {
         await fetchNotes();
@@ -174,15 +181,14 @@ export default function NotesPage() {
 
   const handleTogglePin = async (noteId: string, currentPinStatus: boolean) => {
     try {
-      const response = await fetch(`/api/notes/${noteId}`, {
+      const data = await fetchJson(`/api/notes/${noteId}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ isPinned: !currentPinStatus }),
       });
-
-      const data = await response.json();
 
       if (data.success) {
         await fetchNotes();
@@ -211,6 +217,8 @@ export default function NotesPage() {
             My Notes
           </h2>
         </div>
+
+        <TimeConverterModule />
 
         {/* Notes List */}
         {isLoading ? (

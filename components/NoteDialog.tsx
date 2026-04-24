@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Note, NoteFormData } from '@/types';
 import { getAllCountries, getCountryForTimezone } from 'countries-and-timezones';
@@ -13,13 +13,71 @@ interface NoteDialogProps {
 }
 
 export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialogProps) {
-  const allTimeZones = Intl.supportedValuesOf('timeZone');
+  const baseTimeZones = useMemo(() => Intl.supportedValuesOf('timeZone'), []);
+  const allTimeZones = useMemo(
+    () => (baseTimeZones.includes('UTC') ? baseTimeZones : ['UTC', ...baseTimeZones]),
+    [baseTimeZones]
+  );
+  const timeZoneAliasMap: Record<string, string> = {
+    utc: 'UTC',
+    gmt: 'UTC',
+    est: 'America/New_York',
+    edt: 'America/New_York',
+    cst: 'America/Chicago',
+    cdt: 'America/Chicago',
+    mst: 'America/Denver',
+    mdt: 'America/Denver',
+    pst: 'America/Los_Angeles',
+    pdt: 'America/Los_Angeles',
+    ist: 'Asia/Kolkata',
+    gst: 'Asia/Dubai',
+  };
   const allCountries = Object.values(getAllCountries());
   const regionOptions = allCountries.map((country) => country.name).sort();
   const normalizedRegionAliases: Record<string, string> = {
     uk: 'United Kingdom',
     uae: 'United Arab Emirates',
     usa: 'United States',
+  };
+  const timeZoneLookup = useMemo(() => {
+    return new Map(allTimeZones.map((tz) => [tz.toLowerCase(), tz]));
+  }, [allTimeZones]);
+  const getOffsetLabel = (timeZone: string) => {
+    try {
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone,
+        timeZoneName: 'shortOffset',
+      }).formatToParts(new Date());
+      return parts.find((p) => p.type === 'timeZoneName')?.value ?? '';
+    } catch {
+      return '';
+    }
+  };
+  const timeZoneOptions = useMemo(
+    () =>
+      allTimeZones.map((tz) => ({
+        value: tz,
+        label: `${tz} (${getOffsetLabel(tz) || 'UTC'})`,
+      })),
+    [allTimeZones]
+  );
+
+  const resolveTimeZoneInput = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+
+    const lower = trimmed.toLowerCase();
+    if (timeZoneAliasMap[lower]) {
+      return timeZoneAliasMap[lower];
+    }
+
+    if (trimmed.includes(' (')) {
+      const beforeBracket = trimmed.split(' (')[0].trim();
+      const fromLabel = timeZoneLookup.get(beforeBracket.toLowerCase());
+      if (fromLabel) return fromLabel;
+    }
+
+    return timeZoneLookup.get(lower) || trimmed;
   };
 
   const [formData, setFormData] = useState<NoteFormData>({
@@ -126,12 +184,13 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
   };
 
   const handleTimeZoneChange = (timeZoneValue: string) => {
-    const matchedCountry = getCountryForTimezone(timeZoneValue);
+    const resolvedTimeZone = resolveTimeZoneInput(timeZoneValue);
+    const matchedCountry = getCountryForTimezone(resolvedTimeZone);
     const autoRegion = matchedCountry?.name || '';
 
     setFormData((prev) => ({
       ...prev,
-      clientTimeZone: timeZoneValue,
+      clientTimeZone: resolvedTimeZone,
       clientRegion: autoRegion || prev.clientRegion || '',
     }));
   };
@@ -257,13 +316,13 @@ export default function NoteDialog({ isOpen, onClose, onSave, note }: NoteDialog
                 value={formData.clientTimeZone || ''}
                 onChange={(e) => handleTimeZoneChange(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
-                placeholder="Search timezone (e.g. Europe/London)"
+                placeholder="Search timezone (e.g. UTC, EST, Europe/London)"
                 list="timezone-options"
               />
               <datalist id="timezone-options">
-                {allTimeZones.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
+                {timeZoneOptions.map((tz) => (
+                  <option key={tz.value} value={tz.value} label={tz.label}>
+                    {tz.label}
                   </option>
                 ))}
               </datalist>
