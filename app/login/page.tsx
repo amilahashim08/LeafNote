@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { fetchJson } from '@/lib/fetchJson';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,15 +23,14 @@ export default function LoginPage() {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(endpoint, {
+      const data = await fetchJson(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
-
-      const data = await response.json();
 
       if (data.success) {
         // Store user info in localStorage

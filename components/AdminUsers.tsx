@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { fetchJson } from '@/lib/fetchJson';
 
 interface UserItem {
   _id: string;
@@ -24,28 +25,42 @@ export default function AdminUsers() {
 
   async function fetchUsers() {
     setLoading(true);
-    const res = await fetch('/api/admin/users');
-    const data = await res.json();
-    if (data.success) setUsers(data.data);
-    setLoading(false);
+    try {
+      const data = await fetchJson('/api/admin/users', { credentials: 'include' });
+      if (data.success) setUsers(data.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchNotes(userId: string) {
     setLoading(true);
     setSelectedUserId(userId);
-    const res = await fetch(`/api/admin/users/${userId}/notes`);
-    const data = await res.json();
-    if (data.success) setNotes(data.data);
-    setLoading(false);
+    try {
+      const data = await fetchJson(`/api/admin/users/${userId}/notes`, { credentials: 'include' });
+      if (data.success) setNotes(data.data);
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleReview(noteId: string) {
-    const res = await fetch(`/api/admin/notes/${noteId}/review`, { method: 'PUT' });
-    const data = await res.json();
-    if (data.success) {
-      // refresh notes
-      if (selectedUserId) await fetchNotes(selectedUserId);
-      await fetchUsers();
+    try {
+      const data = await fetchJson(`/api/admin/notes/${noteId}/review`, {
+        method: 'PUT',
+        credentials: 'include',
+      });
+      if (data.success) {
+        // refresh notes
+        if (selectedUserId) await fetchNotes(selectedUserId);
+        await fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error reviewing note:', error);
     }
   }
 
