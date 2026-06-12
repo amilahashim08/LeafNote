@@ -2,10 +2,13 @@
   "name": "leafnote-frontend",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node init && next dev",
+    "build": "node init && next build",
+    "start": "node init && next start",
     "lint": "next lint",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
